@@ -49,7 +49,7 @@ func UpdateSheets(obj string, data [][]string) (err error) {
 	topdate := false
 	for i, row := range response.Values {
 		for _, cell := range row {
-			if isDate(fmt.Sprintf("%s", cell)) && !topdate {
+			if (isDate(fmt.Sprintf("%s", cell)) || isMonth(fmt.Sprintf("%s", cell))) && !topdate {
 				rownumber = i
 				firstdate = fmt.Sprintf("%s", cell)
 				topdate = true
@@ -69,7 +69,7 @@ func UpdateSheets(obj string, data [][]string) (err error) {
 	for _, row := range data {
 		var interfaces []interface{}
 		for _, s := range row {
-			if !topdate && isDate(s) && !sheetempty {
+			if !topdate && (isDate(s) || isMonth(s)) && !sheetempty {
 				topdate = true
 				// if the top date we are inserting is different than the top date of the sheet
 				// we insert a new empty row first
@@ -79,7 +79,7 @@ func UpdateSheets(obj string, data [][]string) (err error) {
 				}
 			}
 			// only add data if we have a date
-			if sheetempty || isDate(row[0]) {
+			if sheetempty || isDate(row[0]) || isMonth(row[0]) {
 				interfaces = append(interfaces, s)
 			}
 		}
@@ -103,6 +103,17 @@ func isDate(date string) (b bool) {
 	} else {
 		return true
 	}
+}
+
+func isMonth(month string) (b bool) {
+	layout := "2006-01"
+	_, err := time.Parse(layout, month)
+	if err != nil {
+		return false
+	} else {
+		return true
+	}
+
 }
 
 func insertRow(insertionIndex int64, spreadsheetID string, s *sheets.Service) (err error) {
