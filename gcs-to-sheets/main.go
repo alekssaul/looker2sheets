@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"encoding/csv"
 	"log"
 	"net/http"
 	"os"
@@ -33,26 +35,35 @@ func HttpHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Recieved event: %s", r.Header.Get("Ce-Methodname"))
 
 	if string(r.Header.Get("Ce-Methodname")) == "storage.objects.create" {
-		// for k, v := range r.Header {
-		// 	log.Printf("Header: %s : %s\n", k, v)
-		// }
-
 		// obj looks like this; storage.googleapis.com/projects/_/buckets/webhook-looker-6814/objects/us_new_users.csv
 		obj := string(r.Header.Get("Ce-Subject"))
 		obj = strings.ReplaceAll(obj, "storage.googleapis.com/projects/_/buckets/", "")
 		obj = strings.ReplaceAll(obj, bucketname, "")
 		obj = strings.ReplaceAll(obj, "/objects/", "")
-		log.Printf("%s\n", obj)
 
-		err := ReadGCSObject(bucketname, obj)
+		log.Printf("Fetching object: %s\n", obj)
+		f, err := gcsDownloadFile(bucketname, obj)
 		if err != nil {
 			log.Printf("Could not retrieve the object %s, error: %v", obj, err)
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
 
-		// string(r.Header.Get("Ce-Subject")
-		// os.Getenv("bucketname")
+		// read csv values using csv.Reader
+		r := bytes.NewReader(f)
+		csvReader := csv.NewReader(r)
+		data, err := csvReader.ReadAll()
+		if err != nil {
+			log.Printf("Cloud not parse the CSV object : %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+
+		err = UpdateSheets(obj, data)
+		if err != nil {
+			log.Printf("Cloud not update the spreadsheet : %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+
+		}
 
 	} else {
 		w.WriteHeader(http.StatusMethodNotAllowed)
