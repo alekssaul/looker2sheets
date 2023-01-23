@@ -142,8 +142,8 @@ func insertRow(insertionIndex int64, spreadsheetID string, sheetName string, s *
 			Range: &sheets.DimensionRange{
 				SheetId:    sheetId,
 				Dimension:  "ROWS",
-				StartIndex: insertionIndex,
-				EndIndex:   insertionIndex + 1,
+				StartIndex: insertionIndex - 1,
+				EndIndex:   insertionIndex,
 			},
 			InheritFromBefore: true,
 		},
