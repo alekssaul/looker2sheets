@@ -74,8 +74,8 @@ func UpdateSheets(obj string, data [][]string) (err error) {
 				// if the top date we are inserting is different than the top date of the sheet
 				// we insert a new empty row first
 				if s != firstdate {
-					log.Printf("New data found")
-					insertRow(int64(rownumber+1), spreadsheetId, sheetsService)
+					log.Printf("New data found in :%s", dashboardname)
+					insertRow(int64(rownumber+1), spreadsheetId, dashboardname, sheetsService)
 				}
 			}
 			// only add data if we have a date
@@ -116,12 +116,29 @@ func isMonth(month string) (b bool) {
 
 }
 
-func insertRow(insertionIndex int64, spreadsheetID string, s *sheets.Service) (err error) {
+func insertRow(insertionIndex int64, spreadsheetID string, sheetName string, s *sheets.Service) (err error) {
+	// Get the spreadsheet
+	resp, err := s.Spreadsheets.Get(spreadsheetID).Do()
+	if err != nil {
+		return fmt.Errorf("unable to get spreadsheet: %v", err)
+	}
+
+	var sheetId int64
+	sheetId = 0
+	for _, sheet := range resp.Sheets {
+		if sheet.Properties.Title == sheetName {
+			// Print the sheet ID
+			sheetId = sheet.Properties.SheetId
+			log.Printf("Sheet %s ID: %v", sheetName, sheet.Properties.SheetId)
+			break
+		}
+	}
+
 	// Create the request body
 	request := &sheets.Request{
 		InsertDimension: &sheets.InsertDimensionRequest{
 			Range: &sheets.DimensionRange{
-				SheetId:    0,
+				SheetId:    sheetId,
 				Dimension:  "ROWS",
 				StartIndex: insertionIndex,
 				EndIndex:   insertionIndex + 1,
