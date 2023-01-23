@@ -74,11 +74,11 @@ func UpdateSheets(obj string, data [][]string) (err error) {
 				// if the top date we are inserting is different than the top date of the sheet
 				// we insert a new empty row first
 				if s != firstdate {
-					log.Printf("New data found in :%s", dashboardname)
+					log.Printf("New data found for : %s", dashboardname)
 					insertRow(int64(rownumber+1), spreadsheetId, dashboardname, sheetsService)
 				}
 			}
-			// only add data if we have a date
+			// skip headers
 			if sheetempty || isDate(row[0]) || isMonth(row[0]) {
 				interfaces = append(interfaces, s)
 			}
@@ -140,8 +140,8 @@ func insertRow(insertionIndex int64, spreadsheetID string, sheetName string, s *
 			Range: &sheets.DimensionRange{
 				SheetId:    sheetId,
 				Dimension:  "ROWS",
-				StartIndex: insertionIndex,
-				EndIndex:   insertionIndex + 1,
+				StartIndex: insertionIndex - 1,
+				EndIndex:   insertionIndex,
 			},
 			InheritFromBefore: true,
 		},
@@ -155,6 +155,6 @@ func insertRow(insertionIndex int64, spreadsheetID string, sheetName string, s *
 		return fmt.Errorf("unable to insert row: %v", err)
 	}
 
-	log.Printf("Empty row inserted to row: %v", insertionIndex)
+	log.Printf("Empty row inserted to row: %v on sheet %s", insertionIndex, sheetName)
 	return nil
 }
