@@ -87,12 +87,10 @@ func UpdateSheets(obj string, data [][]string) (err error) {
 
 	}
 
-	log.Printf("Write Range %s", writeRange)
-
-	// _, err = sheetsService.Spreadsheets.Values.Update(spreadsheetId, writeRange, &vr).ValueInputOption("RAW").Do()
-	// if err != nil {
-	// 	return fmt.Errorf("unable to retrieve data from sheet. %v", err)
-	// }
+	_, err = sheetsService.Spreadsheets.Values.Update(spreadsheetId, writeRange, &vr).ValueInputOption("RAW").Do()
+	if err != nil {
+		return fmt.Errorf("unable to retrieve data from sheet. %v", err)
+	}
 
 	return nil
 }
