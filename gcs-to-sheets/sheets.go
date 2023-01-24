@@ -86,7 +86,7 @@ func UpdateSheets(obj string, data [][]string) (err error) {
 			}
 		}
 		vr.Values = append(vr.Values, interfaces)
-
+		log.Printf("Append data: %v", vr.Values)
 	}
 
 	_, err = sheetsService.Spreadsheets.Values.Update(spreadsheetId, writeRange, &vr).ValueInputOption("RAW").Do()
