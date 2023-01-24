@@ -80,6 +80,8 @@ func UpdateSheets(obj string, data [][]string) (err error) {
 			}
 			// skip headers
 			if sheetempty || isDate(row[0]) || isMonth(row[0]) {
+				s = strings.TrimLeft(s, "\"")
+				s = strings.TrimRight(s, "\"")
 				interfaces = append(interfaces, s)
 			}
 		}
