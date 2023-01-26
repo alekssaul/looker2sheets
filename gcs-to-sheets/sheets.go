@@ -82,17 +82,21 @@ func UpdateSheets(obj string, data [][]string) (err error) {
 			if sheetempty || isDate(row[0]) || isMonth(row[0]) {
 				s = strings.TrimLeft(s, "\"")
 				s = strings.TrimRight(s, "\"")
+				s = strings.Replace(s, ",", "", -1) // data source have numbers with comma in between
 				interfaces = append(interfaces, s)
 			}
 		}
 		vr.Values = append(vr.Values, interfaces)
-		log.Printf("Append data: %v", vr.Values)
+
 	}
 
-	_, err = sheetsService.Spreadsheets.Values.Update(spreadsheetId, writeRange, &vr).ValueInputOption("RAW").Do()
+	log.Printf("Append data: %v", vr.Values)
+	resp, err := sheetsService.Spreadsheets.Values.Update(spreadsheetId, writeRange, &vr).ValueInputOption("RAW").Do()
 	if err != nil {
 		return fmt.Errorf("unable to retrieve data from sheet. %v", err)
 	}
+
+	log.Printf("Response : %v", resp)
 
 	return nil
 }
