@@ -66,9 +66,9 @@ func UpdateSheets(obj string, data [][]string) (err error) {
 	// Itirate over data to append
 	topdate = false
 	var vr sheets.ValueRange
-	for _, row := range data {
+	for c, row := range data {
 		var interfaces []interface{}
-		for _, s := range row {
+		for i, s := range row {
 			if !topdate && (isDate(s) || isMonth(s)) && !sheetempty {
 				topdate = true
 				// if the top date we are inserting is different than the top date of the sheet
@@ -78,14 +78,20 @@ func UpdateSheets(obj string, data [][]string) (err error) {
 					insertRow(int64(rownumber+1), spreadsheetId, dashboardname, sheetsService)
 				}
 			}
+
 			// skip headers
 			if sheetempty || isDate(row[0]) || isMonth(row[0]) {
 				s = strings.TrimLeft(s, "\"")
 				s = strings.TrimRight(s, "\"")
 				s = strings.Replace(s, ",", "", -1) // data source have numbers with comma in between
 				interfaces = append(interfaces, s)
-
 			}
+
+			// if last column add a SUM cell
+			if i == len(row)-1 && len(row) == 5 && isDate(row[0]) {
+				interfaces = append(interfaces, fmt.Sprintf("=SUM(B%v:E%v)", c+1, c+1))
+			}
+
 		}
 		vr.Values = append(vr.Values, interfaces)
 
