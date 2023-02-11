@@ -87,6 +87,12 @@ func UpdateSheets(obj string, data [][]string) (err error) {
 				interfaces = append(interfaces, s)
 			}
 
+			// if last column length is 4, add empty cell and SUM
+			if i == len(row)-1 && len(row) == 4 && isDate(row[0]) {
+				interfaces = append(interfaces, "")
+				interfaces = append(interfaces, fmt.Sprintf("=SUM(B%v:E%v)", c+1, c+1))
+			}
+
 			// if last column add a SUM cell
 			if i == len(row)-1 && len(row) == 5 && isDate(row[0]) {
 				interfaces = append(interfaces, fmt.Sprintf("=SUM(B%v:E%v)", c+1, c+1))
