@@ -33,12 +33,12 @@ func UpdateSheets(obj string, data [][]string) (err error) {
 	// Use the service to retrieve the values
 	response, err := sheetsService.Spreadsheets.Values.Get(spreadsheetId, readRange).Do()
 	if err != nil {
-		return fmt.Errorf("unable to retrieve values: %v", err)
+		return fmt.Errorf("%s : unable to retrieve values: %v", dashboardname, err)
 	}
 
 	sheetempty := false
 	if len(response.Values) == 0 {
-		log.Printf("Sheet %s is empty", dashboardname)
+		log.Printf("%s Sheet is empty", dashboardname)
 		sheetempty = true
 	}
 
@@ -53,7 +53,7 @@ func UpdateSheets(obj string, data [][]string) (err error) {
 				rownumber = i
 				firstdate = fmt.Sprintf("%s", cell)
 				topdate = true
-				log.Printf("Top Date on Existing spreadsheet is %s", cell)
+				log.Printf("%s : Top Date on Existing spreadsheet is %s", dashboardname, cell)
 			}
 		}
 	}
@@ -69,18 +69,18 @@ func UpdateSheets(obj string, data [][]string) (err error) {
 	for c, row := range data {
 		var interfaces []interface{}
 		for i, s := range row {
-			if !topdate && (isDate(s) || isMonth(s)) && !sheetempty {
+			if !topdate && (isDate(s) || isMonth(s) || isValidDateTimeString(s)) && !sheetempty {
 				topdate = true
 				// if the top date we are inserting is different than the top date of the sheet
 				// we insert a new empty row first
 				if s != firstdate {
-					log.Printf("New data found for : %s", dashboardname)
+					log.Printf("%s : New data found", dashboardname)
 					insertRow(int64(rownumber+1), spreadsheetId, dashboardname, sheetsService)
 				}
 			}
 
 			// skip headers
-			if sheetempty || isDate(row[0]) || isMonth(row[0]) {
+			if sheetempty || isDate(row[0]) || isMonth(row[0]) || isValidDateTimeString(s) {
 				s = strings.TrimLeft(s, "\"")
 				s = strings.TrimRight(s, "\"")
 				s = strings.Replace(s, ",", "", -1) // data source have numbers with comma in between
@@ -93,7 +93,7 @@ func UpdateSheets(obj string, data [][]string) (err error) {
 			}
 
 			// if last column add a SUM cell
-			if i == len(row)-1 && len(row) == 5 && isDate(row[0]) {
+			if i == len(row)-1 && (len(row) == 5 || len(row) == 4) && isDate(row[0]) {
 				interfaces = append(interfaces, fmt.Sprintf("=SUM(B%v:E%v)", c+1, c+1))
 			}
 
@@ -102,11 +102,11 @@ func UpdateSheets(obj string, data [][]string) (err error) {
 
 	}
 
-	log.Printf("Append data: %v", vr.Values)
+	log.Printf("%s : Append data: %v", dashboardname, vr.Values)
 
 	_, err = sheetsService.Spreadsheets.Values.Update(spreadsheetId, writeRange, &vr).ValueInputOption("USER_ENTERED").Do()
 	if err != nil {
-		return fmt.Errorf("unable to retrieve data from sheet. %v", err)
+		return fmt.Errorf("%s : unable to retrieve data from sheet. %v", dashboardname, err)
 	}
 
 	return nil
@@ -131,6 +131,11 @@ func isMonth(month string) (b bool) {
 		return true
 	}
 
+}
+
+func isValidDateTimeString(str string) bool {
+	_, err := time.Parse("2006-01-02 15:04:05", str)
+	return err == nil
 }
 
 func insertRow(insertionIndex int64, spreadsheetID string, sheetName string, s *sheets.Service) (err error) {
