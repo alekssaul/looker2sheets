@@ -81,7 +81,7 @@ func UpdateSheets(obj string, data [][]string) (err error) {
 			}
 
 			// skip headers
-			if sheetempty || isDate(row[0]) || isMonth(row[0]) || isValidDateTimeString(s) {
+			if sheetempty || isDate(row[0]) || isMonth(row[0]) || isValidDateTimeString(row[0]) {
 				s = strings.TrimLeft(s, "\"")
 				s = strings.TrimRight(s, "\"")
 				s = strings.Replace(s, ",", "", -1) // data source have numbers with comma in between
