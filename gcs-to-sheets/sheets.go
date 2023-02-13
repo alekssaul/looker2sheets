@@ -49,7 +49,8 @@ func UpdateSheets(obj string, data [][]string) (err error) {
 	topdate := false
 	for i, row := range response.Values {
 		for _, cell := range row {
-			if (isDate(fmt.Sprintf("%s", cell)) || isMonth(fmt.Sprintf("%s", cell))) && !topdate {
+			if (isDate(fmt.Sprintf("%s", cell)) || isMonth(fmt.Sprintf("%s", cell)) ||
+				isValidDateTimeString(fmt.Sprintf("%s", cell))) && !topdate {
 				rownumber = i
 				firstdate = fmt.Sprintf("%s", cell)
 				topdate = true
