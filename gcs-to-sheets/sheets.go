@@ -228,11 +228,11 @@ func updateSummary(spreadsheetId string, sheetsService *sheets.Service) (err err
 
 	insertRow(int64(2), spreadsheetId, "Summary", sheetsService)
 
-	//firstRow := "Summary" + "!A2"
-	// _, err = sheetsService.Spreadsheets.Values.Update(spreadsheetId, firstRow, &vr).ValueInputOption("USER_ENTERED").Do()
-	// if err != nil {
-	// 	return fmt.Errorf("Summary : unable to update data. %v", dashboardname, err)
-	// }
+	firstRow := "Summary" + "!A2"
+	_, err = sheetsService.Spreadsheets.Values.Update(spreadsheetId, firstRow, &vr).ValueInputOption("USER_ENTERED").Do()
+	if err != nil {
+		return fmt.Errorf("Summary : unable to update data. %v", dashboardname, err)
+	}
 
 	log.Printf("Updated the Summary Sheet")
 	return nil
