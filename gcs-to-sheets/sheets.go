@@ -76,7 +76,7 @@ func UpdateSheets(obj string, data [][]string) (err error) {
 				// we insert a new empty row first
 				if s != firstdate {
 					log.Printf("%s : New data found", dashboardname)
-					insertRow(int64(rownumber+1), spreadsheetId, dashboardname, sheetsService)
+					insertRow(int64(rownumber+1), spreadsheetId, dashboardname, sheetsService, true)
 				}
 			}
 
@@ -151,7 +151,7 @@ func isValidDateTimeString(str string) bool {
 	return err == nil
 }
 
-func insertRow(insertionIndex int64, spreadsheetID string, sheetName string, s *sheets.Service) (err error) {
+func insertRow(insertionIndex int64, spreadsheetID string, sheetName string, s *sheets.Service, inheritance bool) (err error) {
 	// Get the spreadsheet
 	resp, err := s.Spreadsheets.Get(spreadsheetID).Do()
 	if err != nil {
@@ -178,7 +178,7 @@ func insertRow(insertionIndex int64, spreadsheetID string, sheetName string, s *
 				StartIndex: insertionIndex - 1,
 				EndIndex:   insertionIndex,
 			},
-			InheritFromBefore: true,
+			InheritFromBefore: inheritance,
 		},
 	}
 	batchUpdateRequest := &sheets.BatchUpdateSpreadsheetRequest{
@@ -230,12 +230,12 @@ func updateSummary(spreadsheetId string, sheetsService *sheets.Service) (err err
 	vr.Values = append(vr.Values, interfaces)
 	log.Printf("Summary : Append data: %v", vr.Values)
 
-	insertRow(int64(2), spreadsheetId, "Summary", sheetsService)
+	insertRow(int64(2), spreadsheetId, "Summary", sheetsService, false)
 
 	firstRow := "Summary" + "!A2"
 	_, err = sheetsService.Spreadsheets.Values.Update(spreadsheetId, firstRow, &vr).ValueInputOption("USER_ENTERED").Do()
 	if err != nil {
-		return fmt.Errorf("Summary : unable to update data. %v", err)
+		return fmt.Errorf("summary : unable to update data. %v", err)
 	}
 
 	log.Printf("Updated the Summary Sheet")
