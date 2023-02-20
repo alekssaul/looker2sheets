@@ -85,11 +85,13 @@ func UpdateSheets(obj string, data [][]string) (err error) {
 				s = strings.TrimLeft(s, "\"")
 				s = strings.TrimRight(s, "\"")
 				s = strings.Replace(s, ",", "", -1) // data source have numbers with comma in between
+
 				if isValidDateTimeString(s) {
-					// remove the datetime sta=mp
+					// remove the datetime stamp
 					interfaces = append(interfaces, strings.TrimRight(s, " 0:00:00"))
+				} else {
+					interfaces = append(interfaces, s)
 				}
-				interfaces = append(interfaces, s)
 			}
 
 			// if last column length is 4, add empty cell and SUM
