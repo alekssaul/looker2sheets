@@ -107,7 +107,15 @@ func UpdateSheets(obj string, data [][]string) (err error) {
 
 	_, err = sheetsService.Spreadsheets.Values.Update(spreadsheetId, writeRange, &vr).ValueInputOption("USER_ENTERED").Do()
 	if err != nil {
-		return fmt.Errorf("%s : unable to retrieve data from sheet. %v", dashboardname, err)
+		return fmt.Errorf("%s : unable to update data in the sheet. %v", dashboardname, err)
+	}
+
+	// Randomly selected a dashboard name that executes once to update the summary
+	if dashboardname == "svod_subscriptions_kpi" {
+		err = updateSummary()
+		if err != nil {
+			return fmt.Errorf("%s : Could not update the Summary sheet. %v", dashboardname, err)
+		}
 	}
 
 	return nil
@@ -180,4 +188,62 @@ func insertRow(insertionIndex int64, spreadsheetID string, sheetName string, s *
 
 	log.Printf("Empty row inserted to row: %v on sheet %s", insertionIndex, sheetName)
 	return nil
+}
+
+func updateSummary() (err error) {
+	var vr sheets.ValueRange
+
+	var interfaces []interface{}
+	interfaces = append(interfaces, getYesterdayDate())
+
+	cell := "=VLOOKUP(A2,daily_hours!A:F,6,FALSE)"
+	interfaces = append(interfaces, cell)
+
+	cell = "=VLOOKUP(A2,daily_users!A:F,6,FALSE)"
+	interfaces = append(interfaces, cell)
+
+	cell = "=VLOOKUP(A2,svod_daily_users!A:F,6,FALSE)"
+	interfaces = append(interfaces, cell)
+
+	cell = "=VLOOKUP(A2,svod_daily_hours!A:F,6,FALSE)"
+	interfaces = append(interfaces, cell)
+
+	cell = "=SUM(svod_subscriptions_kpi!B3:D3)"
+	interfaces = append(interfaces, cell)
+
+	cell = "=F2-H2"
+	interfaces = append(interfaces, cell)
+
+	cell = "=svod_users_us!I2+svod_users_mx!I2+svod_users_rolac!I2"
+	interfaces = append(interfaces, cell)
+
+	cell = "=E2/D2"
+	interfaces = append(interfaces, cell)
+
+	cell = "=(B2-E2)/(C2-D2)"
+	interfaces = append(interfaces, cell)
+
+	vr.Values = append(vr.Values, interfaces)
+	log.Printf("Summary : Append data: %v", vr.Values)
+	//firstRow := "Summary" + "!A2"
+	// _, err = sheetsService.Spreadsheets.Values.Update(spreadsheetId, firstRow, &vr).ValueInputOption("USER_ENTERED").Do()
+	// if err != nil {
+	// 	return fmt.Errorf("Summary : unable to update data. %v", dashboardname, err)
+	// }
+
+	log.Printf("Updated the Summary Sheet")
+	return nil
+}
+
+func getYesterdayDate() string {
+	// Get the current time in the UTC timezone
+	now := time.Now().UTC()
+
+	// Subtract 1 day from the current time
+	yesterday := now.AddDate(0, 0, -1)
+
+	// Format the yesterday date as a string in "YYYY-MM-DD" format
+	yesterdayStr := yesterday.Format("2006-01-02")
+
+	return yesterdayStr
 }
