@@ -85,6 +85,10 @@ func UpdateSheets(obj string, data [][]string) (err error) {
 				s = strings.TrimLeft(s, "\"")
 				s = strings.TrimRight(s, "\"")
 				s = strings.Replace(s, ",", "", -1) // data source have numbers with comma in between
+				if isValidDateTimeString(s) {
+					// remove the datetime sta=mp
+					interfaces = append(interfaces, strings.TrimRight(s, " 0:00:00"))
+				}
 				interfaces = append(interfaces, s)
 			}
 
@@ -231,7 +235,7 @@ func updateSummary(spreadsheetId string, sheetsService *sheets.Service) (err err
 	firstRow := "Summary" + "!A2"
 	_, err = sheetsService.Spreadsheets.Values.Update(spreadsheetId, firstRow, &vr).ValueInputOption("USER_ENTERED").Do()
 	if err != nil {
-		return fmt.Errorf("Summary : unable to update data. %v", dashboardname, err)
+		return fmt.Errorf("Summary : unable to update data. %v", err)
 	}
 
 	log.Printf("Updated the Summary Sheet")
