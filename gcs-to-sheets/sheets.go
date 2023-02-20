@@ -112,7 +112,7 @@ func UpdateSheets(obj string, data [][]string) (err error) {
 
 	// Randomly selected a dashboard name that executes once to update the summary
 	if dashboardname == "svod_subscriptions_kpi" {
-		err = updateSummary()
+		err = updateSummary(spreadsheetId, sheetsService)
 		if err != nil {
 			return fmt.Errorf("%s : Could not update the Summary sheet. %v", dashboardname, err)
 		}
@@ -190,7 +190,7 @@ func insertRow(insertionIndex int64, spreadsheetID string, sheetName string, s *
 	return nil
 }
 
-func updateSummary() (err error) {
+func updateSummary(spreadsheetId string, sheetsService *sheets.Service) (err error) {
 	var vr sheets.ValueRange
 
 	var interfaces []interface{}
@@ -225,6 +225,9 @@ func updateSummary() (err error) {
 
 	vr.Values = append(vr.Values, interfaces)
 	log.Printf("Summary : Append data: %v", vr.Values)
+
+	insertRow(int64(2), spreadsheetId, "Summary", sheetsService)
+
 	//firstRow := "Summary" + "!A2"
 	// _, err = sheetsService.Spreadsheets.Values.Update(spreadsheetId, firstRow, &vr).ValueInputOption("USER_ENTERED").Do()
 	// if err != nil {
